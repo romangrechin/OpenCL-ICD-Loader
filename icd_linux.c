@@ -55,26 +55,26 @@ static pthread_once_t initialized = PTHREAD_ONCE_INIT;
 // go through the list of vendors in the two configuration files
 void khrIcdOsVendorsEnumerate(void)
 {
-    DIR *dir = NULL;
-    struct dirent *dirEntry = NULL;
+    int n;
+    int i=0;
+    struct dirent **namelist;
 #ifdef __ANDROID__
     char *vendorPath = "/system/vendor/Khronos/OpenCL/vendors/";
 #else
     char *vendorPath = "/etc/OpenCL/vendors/";
 #endif // ANDROID
 
-    // open the directory
-    dir = opendir(vendorPath);
-    if (NULL == dir) 
+    n = scandir(vendorPath, &namelist, 0, alphasort);
+    if (n < 0)
     {
         KHR_ICD_TRACE("Failed to open path %s\n", vendorPath);
         goto Cleanup;
     }
 
     // attempt to load all files in the directory
-    for (dirEntry = readdir(dir); dirEntry; dirEntry = readdir(dir) )
+    while (i<n)
     {
-        switch(dirEntry->d_type)
+        switch(namelist[i]->d_type)
         {
         case DT_UNKNOWN:
         case DT_REG:
@@ -87,23 +87,23 @@ void khrIcdOsVendorsEnumerate(void)
                 long bufferSize = 0;
 
                 // make sure the file name ends in .icd
-                if (strlen(extension) > strlen(dirEntry->d_name) )
+                if (strlen(extension) > strlen(namelist[i]->d_name) )
                 {
                     break;
                 }
-                if (strcmp(dirEntry->d_name + strlen(dirEntry->d_name) - strlen(extension), extension) ) 
+                if (strcmp(namelist[i]->d_name + strlen(namelist[i]->d_name) - strlen(extension), extension) )
                 {
                     break;
                 }
 
                 // allocate space for the full path of the vendor library name
-                fileName = malloc(strlen(dirEntry->d_name) + strlen(vendorPath) + 1);
+                fileName = malloc(strlen(namelist[i]->d_name) + strlen(vendorPath) + 1);
                 if (!fileName) 
                 {
                     KHR_ICD_TRACE("Failed allocate space for ICD file path\n");
                     break;
                 }
-                sprintf(fileName, "%s%s", vendorPath, dirEntry->d_name);
+                sprintf(fileName, "%s%s", vendorPath, namelist[i]->d_name);
 
                 // open the file and read its contents
                 fin = fopen(fileName, "r");
@@ -145,6 +145,7 @@ void khrIcdOsVendorsEnumerate(void)
         default:
             break;
         }
+        i++;
     }
 
 Cleanup:
