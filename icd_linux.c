@@ -149,7 +149,7 @@ void khrIcdOsVendorsEnumerate(void)
     }
 
 Cleanup:
-
+    return;
 }
 
 // go through the list of vendors only once
