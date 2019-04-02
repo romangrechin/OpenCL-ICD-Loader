@@ -150,11 +150,6 @@ void khrIcdOsVendorsEnumerate(void)
 
 Cleanup:
 
-    // free resources and exit
-    if (dir) 
-    {
-        closedir(dir);
-    }
 }
 
 // go through the list of vendors only once
