@@ -147,7 +147,7 @@ void khrIcdOsVendorsEnumerate(void)
         }
         i++;
     }
-
+    free(namelist);
 Cleanup:
     return;
 }
